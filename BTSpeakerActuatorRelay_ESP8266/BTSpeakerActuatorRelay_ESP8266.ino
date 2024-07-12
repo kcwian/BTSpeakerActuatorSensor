@@ -97,6 +97,8 @@ void setup(void) {
 
 void loop(void) {
 
+
+
   MDNS.update();
   server.handleClient();
 
@@ -112,6 +114,7 @@ void loop(void) {
       userState = 0;
     }
   }
+
 
   // Check if state changed
   static bool prevUserState = 1;
@@ -247,20 +250,4 @@ void handleNotFound() {
     message += " " + server.argName(i) + ": " + server.arg(i) + "\n";
   }
   server.send(404, "text/plain", message);
-}
-
-
-int getTime()
-{
-  struct tm timeinfo;
-  if (!getLocalTime(&timeinfo)) {
-    Serial.println("Failed to obtain time");
-    return 0;
-  }
-  //  Serial.println(&timeinfo, "%A, %B %d %Y %H:%M:%S");
-
-  int t_hour = timeinfo.tm_hour; // Blue
-  int t_min  = timeinfo.tm_min;  // Green
-  int t_sec  = timeinfo.tm_sec;  // Red
-  return t_hour * 10000 + t_min * 100 + t_sec;
 }
