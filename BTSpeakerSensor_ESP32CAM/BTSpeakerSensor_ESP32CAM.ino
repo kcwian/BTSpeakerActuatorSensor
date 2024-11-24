@@ -16,13 +16,14 @@
 #define WIFI_PASS "schnappi"
 #define WIFI_SSID2 "AndroidAP5"
 #define WIFI_PASS2 "yaog8837"
-#define SERVER_NAME_SENSOR "btspeakersensor2"
+#define SERVER_NAME_SENSOR "btspeakersensor"
 #define SERVER_NAME_ACTUATOR1 "btspeakeractuator1"
 #define SERVER_NAME_ACTUATOR2 "btspeakeractuator2"
+#define SERVER_NAME_ACTUATOR3 "btspeakeractuator3"
 #define PIR_SENSOR_PIN 12
 
-bool actuatorFound[2] = {false, false};
-bool actuatorState[2] = {false, false};
+bool actuatorFound[3] = {false, false, false};
+bool actuatorState[3] = {false, false, false};
 /**
    80 is the port to listen to
    You can change it to whatever you want, 80 is the default for HTTP
@@ -30,7 +31,7 @@ bool actuatorState[2] = {false, false};
 //EloquentSurveillance::StreamServer streamServer(80);
 //EloquentSurveillance::Motion motion;
 WiFiClient wifiClient;
-IPAddress actuatorIp[2];
+IPAddress actuatorIp[3];
 
 WebServer server(80);
 int delayIntervalMin = 1;
@@ -84,6 +85,8 @@ void setup() {
   }
   actuatorIp[0] = checkActuatorIP(SERVER_NAME_ACTUATOR1, actuatorFound[0]);
   actuatorIp[1] = checkActuatorIP(SERVER_NAME_ACTUATOR2, actuatorFound[1]);
+  actuatorIp[2] = checkActuatorIP(SERVER_NAME_ACTUATOR2, actuatorFound[2]);
+
   // Enable if found
   if (actuatorFound[0])
     actuatorState[0] = true;
@@ -91,11 +94,15 @@ void setup() {
   if (actuatorFound[1])
     actuatorState[1] = true;
 
+  if (actuatorFound[2])
+    actuatorState[2] = true;
+
   server.on("/", handleRoot);
   server.on("/config", handleConfig);
   server.on("/getState", HTTP_GET, handleGetState);
   server.on("/setActuator1State", HTTP_GET, handleSetActuator1State);
   server.on("/setActuator2State", HTTP_GET, handleSetActuator2State);
+  server.on("/setActuator3State", HTTP_GET, handleSetActuator3State);
   server.on("/setDelayInterval", HTTP_GET, handleSetDelayInterval);
   server.onNotFound(handleNotFound);
   server.begin();
@@ -160,11 +167,11 @@ void loop() {
     unsigned long actualTime = millis();
     if (actualTime - lastTimeSpeakerOff > 5000) {
       //      while (!turnSpeakerOff(actuatorIp[1]));
-      bool actuatorIsOff[2] = {false, false};
-      bool actuatorShouldBeTrunedOff[2] = {false, false};
+      bool actuatorIsOff[3] = {false, false, false};
+      bool actuatorShouldBeTrunedOff[3] = {false, false, false};
       while (true)
       {
-        for (int i = 0; i < 2; i++)
+        for (int i = 0; i < 3; i++)
         {
           if (actuatorState[i] && actuatorFound[i] && !actuatorIsOff[i]) {
             actuatorShouldBeTrunedOff[i] = true;
@@ -173,7 +180,7 @@ void loop() {
           }
         }
         // If actuator1 should be off butits not, or if the actuator2 should be off but its not
-        if ( (actuatorShouldBeTrunedOff[0] && !actuatorIsOff[0]) || (actuatorShouldBeTrunedOff[1] && !actuatorIsOff[1]))
+        if ( (actuatorShouldBeTrunedOff[0] && !actuatorIsOff[0]) || (actuatorShouldBeTrunedOff[1] && !actuatorIsOff[1]) || (actuatorShouldBeTrunedOff[2] && !actuatorIsOff[2]) )
           continue;
         else
         {
@@ -282,6 +289,8 @@ void handleGetState()
   response += String("actuator1State=")  + String(actuatorState[0]) + String("<br>");
   response += String("actuator2Found=") + String(actuatorFound[1]) + String("<br>");
   response += String("actuator2State=")  + String(actuatorState[1]) + String("<br>");
+  response += String("actuator3Found=") + String(actuatorFound[2]) + String("<br>");
+  response += String("actuator3State=")  + String(actuatorState[2]) + String("<br>");
   response += String("delayInterval=")  + String(delayIntervalMin) + String("<br>");
 
   server.send(200, "text/plane", response);
@@ -341,6 +350,25 @@ void handleSetActuator2State()
   if (state_s == "1") {
     // Check its IP;
     actuatorIp[actuatorNum] = checkActuatorIP(SERVER_NAME_ACTUATOR2, actuatorFound[actuatorNum]);
+    if (actuatorFound[actuatorNum] == true)
+      //Enable the actuator
+      actuatorState[actuatorNum] = 1;
+    else
+      actuatorState[actuatorNum] = false;
+  }
+  else {
+    actuatorState[actuatorNum] = 0;
+  }
+  server.send(200, "text/plane", String(actuatorState[actuatorNum] * 1 ));
+}
+
+void handleSetActuator3State()
+{
+  int actuatorNum = 2;
+  String state_s = server.arg("state");
+  if (state_s == "1") {
+    // Check its IP;
+    actuatorIp[actuatorNum] = checkActuatorIP(SERVER_NAME_ACTUATOR3, actuatorFound[actuatorNum]);
     if (actuatorFound[actuatorNum] == true)
       //Enable the actuator
       actuatorState[actuatorNum] = 1;

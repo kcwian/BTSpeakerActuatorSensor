@@ -3,13 +3,17 @@ const char CONFIG_page[]PROGMEM  = R"=====(
 <html>
 
 <body>
-    <span> Actuator 1 Handling</span><br>
+    <h3> Actuator 1 (Audio detection) </h3><br>
     <button type="button" class="block" onclick="setActuator1State(1)">Turn ON</button>
     <button type="button" class="block" onclick="setActuator1State(0)">Turn OFF</button><br>
     
-    <span> Actuator 2 Handling</span><br>
+    <h3> Actuator 2 (Small relay) </h3><br>
     <button type="button" class="block" onclick="setActuator2State(1)">Turn ON Handling</button>
     <button type="button" class="block" onclick="setActuator2State(0)">Turn OFF Handling</button><br>
+
+    <h3> Actuator 3 (Big relay) </h3><br>
+    <button type="button" class="block" onclick="setActuator3State(1)">Turn ON Handling</button>
+    <button type="button" class="block" onclick="setActuator3State(0)">Turn OFF Handling</button><br>
 
     Delay start [min] <input type="number" min="1" max="1000" step=1 value="1" oninput="setDelayInterval(this.value)"><br>
 
@@ -19,6 +23,8 @@ const char CONFIG_page[]PROGMEM  = R"=====(
    Actuator 1 handling: <span id="actuator1State">NA</span><br>
    Actuator 2 found: <span id="actuator2Found">NA</span><br>
    Actuator 2 handling: <span id="actuator2State">NA</span><br>
+   Actuator 3 found: <span id="actuator3Found">NA</span><br>
+   Actuator 3 handling: <span id="actuator3State">NA</span><br>
    Delayed start [min]: <span id="delayInterval">NA</span><br>
    <br>
 </div>
@@ -68,6 +74,17 @@ const char CONFIG_page[]PROGMEM  = R"=====(
         }
       };
       xhttp.open("GET", "setActuator2State?state=" + value, true);
+      xhttp.send();
+    }
+
+    function setActuator3State(value) {
+      var xhttp = new XMLHttpRequest();
+      xhttp.onreadystatechange = function () {
+        if (this.readyState == 4 && this.status == 200) {
+          document.getElementById("actuator3State").innerHTML = this.responseText;
+        }
+      };
+      xhttp.open("GET", "setActuator3State?state=" + value, true);
       xhttp.send();
     }
 
